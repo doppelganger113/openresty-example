@@ -1,0 +1,11 @@
+version: '2'
+services:
+  openresty:
+    container_name: openresty
+    build: ./resty
+    volumes:
+      - ./resty/conf.d/:/usr/local/openresty/nginx/conf/conf.d/
+      - ./resty/log/:/var/log/nginx/
+      - ./resty/lua/:/usr/local/openresty/nginx/lua/
+    ports:
+      - 5000:80

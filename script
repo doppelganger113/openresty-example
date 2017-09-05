@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+
+case "$@" in
+    start)
+        docker-compose up -d --build
+        ;;
+    stop)
+        docker-compose stop
+        ;;
+    stopall)
+        docker stop $(docker ps -a -q)
+        ;;
+    clean)
+        printf "\e[96m Removing lingering docker images...\n"
+        docker rmi $(docker images | grep "^<none>" | awk "{print $3}");
+        ;;
+    reload)
+        docker exec openresty nginx -s reload
+        ;;
+    attach)
+        docker exec -it openresty /bin/bash
+        ;;
+    compile)
+        docker exec openresty /bin/bash -c "
+        cd /usr/local/openresty/nginx/lua/;
+        luajit -b /usr/local/openresty/nginx/lua/example.lua /usr/local/openresty/nginx/lua/example.ljbc;
+        luajit -b /usr/local/openresty/nginx/lua/headers.lua /usr/local/openresty/nginx/lua/headers.ljbc;
+        luajit -b /usr/local/openresty/nginx/lua/log.lua /usr/local/openresty/nginx/lua/log.ljbc;
+        nginx -s reload
+        "
+        ;;
+    emptylog)
+        docker exec openresty cp /dev/null /var/log/nginx/error.log
+        ;;
+    *)
+        echo "Accepting only start|stop|stopall|clean|reload|attach|compile|emptylog"
+        exit 1
+esac
